@@ -1,0 +1,91 @@
+# *********** E N U N C I A D O ***********
+# A3- Del drive descargar el programa procesos.exe. El mismo muestra en consola una tabla
+# con el PID, nombre y usuario de cada proceso corriendo en el sistema.
+# Crear un script buscar_proceso.py que reciba como argumento a través de la consola el
+# nombre de un proceso, ejecute el programa procesos.exe e imprima su PID y usuario.
+# Si hay varios procesos con el mismo nombre, debe imprimir la información de todos ellos.
+# Si el nombre del proceso no se ha pasado, debe mostrar un error en la consola y concluir.
+# En los procesos en que no aparezca el usuario reemplazarlo por una cadena vacía.
+
+# NOTA: Este es la v2
+# La version 2 la cree por que si bien el codigo puede ser un poco mas rebuscado la estructura 
+# me parece mas solida, se trata de un diccionario con listas de diccionarios. para mi mejora 
+# el retorno y la velocidad de entrega de datos
+# ej:
+# 	procesos{
+# 		"chrome.exe":[
+# 			{"PID": "19323", "User": miPCuser},	
+# 			{"PID": "11223", "User": miPCuser},
+# 			{"PID": "4321", "User": miPCuser}
+# 		],
+# 		"otroPrograma.exe":[
+# 			{"PID": "1246", "User": miPCuser}
+# 		],
+# 	}
+
+import sys
+import subprocess
+
+def separarItemsRenglon(renglon):
+    # separo los items del renglon
+    itemsRenglon = renglon.split("|")
+    for e in range(len(itemsRenglon)):
+        itemsRenglon[e] = itemsRenglon[e].replace("|", "").strip()
+        
+    # elimino los primeros y ultimos datos insesarios
+    itemsRenglon = itemsRenglon[1:-1]
+    itemsRenglon[1] = itemsRenglon[1].lower()
+    if itemsRenglon[2] == "-":
+        itemsRenglon[2] = ""
+    return itemsRenglon
+
+try:
+    nombreProceso = sys.argv[1]
+    procesosActuales = subprocess.run("procesos.exe", capture_output=True, encoding="cp850").stdout
+except IndexError:
+    print("Debe ingresar el nombre del proceso a buscar como argument")
+except FileNotFoundError:
+    print("No se encontro el archivo procesos.exe")
+else:
+    print("--------------------------------------------")
+    # convierto a minusculas
+    nombreProceso = nombreProceso.lower()
+    print("Nombre del proceso", nombreProceso)
+    
+    # separo en renglones
+    renglones = procesosActuales.split("\n")
+    renglones = renglones[3:-2]
+    
+    # creo un diccionario con los datos de cada proceso
+    procesos = {}
+    for renglon in renglones:
+        # separo los items del renglon
+        itemsRenglon = separarItemsRenglon(renglon)
+        
+        # agrego el proceso al diccionario
+        try:
+            procesos[itemsRenglon[1]]
+        except KeyError:
+            lista = []
+            lista.append( {"PID": itemsRenglon[0], "User": itemsRenglon[2]} )
+            procesos[itemsRenglon[1]] = lista
+        else:
+            lista = procesos[itemsRenglon[1]]
+            lista.append( {"PID": itemsRenglon[0], "User": itemsRenglon[2]} )
+            procesos[itemsRenglon[1]] = lista
+    
+    # busco el proceso
+    try:
+        procesos[nombreProceso]
+    except KeyError:
+        print("No se encontro el proceso")
+    else:
+        print("Procesos encontrados:")
+        for proceso in procesos[nombreProceso]:
+            print("PID:", proceso["PID"], "User:", proceso["User"])
+    
+    
+    print("--------------------------------------------")
+        
+
+    
