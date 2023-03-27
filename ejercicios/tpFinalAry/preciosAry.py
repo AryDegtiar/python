@@ -43,7 +43,32 @@ while True:
             
     elif opcion == 2:
         print("Modificar de producto")
-        
+        # obtener nombre y precio del producto
+        try:
+            nombre = input("Ingrese el nombre del producto: ")
+            cursor.execute("SELECT * FROM productos WHERE producto = ?", (nombre,)) # busca el producto en la tabla productos
+            productoEncontrado  = cursor.fetchall()
+            if len(productoEncontrado ) == 0:
+                print("El producto no existe")
+            elif len(productoEncontrado ) > 1:
+                print("Se encontraron varios productos con el mismo nombre")
+                print("ID    Producto    Precio")
+                for prod in productoEncontrado :
+                    print(producto[0], "'" +  str(producto[1]) + "'", "$" + str(producto[2])) 
+                
+                try:
+                    idProd = int(input("Ingrese el ID del producto a modificar: "))
+                except ValueError:
+                    print("Error, Debe ingresar un numero")
+
+                cursor.execute("SELECT * FROM productos WHERE id = ?", (idProd,)) # busca el producto en la tabla productos
+                productoEncontrado = cursor.fetchone()
+            else:
+                productoEncontrado = productoEncontrado[0]
+            print("Producto encontrado: ", productoEncontrado[1], " Precio: ", productoEncontrado[2])
+        except ValueError:
+            print("Error, Debe ingresar un numero")
+
     elif opcion == 3:
         print("Baja de producto")
         
@@ -56,6 +81,7 @@ while True:
         for producto in dataProductos:
             print(producto[0], "'" +  str(producto[1]) + "'", "$" + str(producto[2])) # el str en nombreProd esta de mas, pero lo dejo por que me parece buena practica
         print("-------------------------")
+
     elif opcion == 5:
         conn.close() # cierra la conexion
         print("¡Hasta el infinito y más allá!")
